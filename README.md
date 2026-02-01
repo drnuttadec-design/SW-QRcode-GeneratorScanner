@@ -1,2 +1,2 @@
-# SW-QRcode-GeneratorScanner
-QR code generator and scanner created by Srisangwornsukhothai personnel
+# SW-QRcode-GeneratorReader
+QR code generator and reader created by Srisangwornsukhothai personnel
