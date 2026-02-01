@@ -14,10 +14,10 @@
     <script src="https://cdn.tailwindcss.com"></script>
     
     <!-- QR Code Libraries -->
-    <!-- Styling -->
+    <!-- Styling for Generation -->
     <script type="text/javascript" src="https://unpkg.com/qr-code-styling@1.5.0/lib/qr-code-styling.js"></script>
-    <!-- Reading (Decoder) -->
-    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+    <!-- HTML5-QRCode for Scanning (File Support Only) -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 
     <!-- Font Awesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -32,7 +32,10 @@
                             panel: '#0f172a',
                             blue: '#00f2ff',
                             deepblue: '#0051ff',
-                            accent: '#38bdf8'
+                            accent: '#38bdf8',
+                            success: '#10b981',
+                            warning: '#f59e0b',
+                            danger: '#ef4444'
                         }
                     },
                     fontFamily: {
@@ -65,47 +68,28 @@
         }
         
         .glass-panel {
-            background: rgba(15, 23, 42, 0.7);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
             border: 1px solid rgba(56, 189, 248, 0.2);
         }
 
-        /* Star Rating Hover Effects */
-        .star-rating i:hover,
-        .star-rating i:hover ~ i {
-            color: #fbbf24; /* yellow-400 */
-        }
+        /* Star Rating */
+        .star-rating i:hover, .star-rating i:hover ~ i { color: #fbbf24; }
+        .star-rating:hover i { color: #475569; }
+        .star-active { color: #fbbf24 !important; }
+
+        /* Tabs */
+        .tab-content { display: none; animation: fadeIn 0.3s ease-in-out; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Chart Bar */
+        .chart-bar { transition: height 1s cubic-bezier(0.4, 0, 0.2, 1); height: 0%; }
         
-        .star-rating:hover i {
-            color: #475569; /* slate-600 */
-        }
-
-        .star-rating i:hover {
-            color: #fbbf24;
-        }
-
-        .star-active {
-            color: #fbbf24 !important;
-        }
-
-        /* Tab Transition */
-        .tab-content {
-            display: none;
-            animation: fadeIn 0.3s ease-in-out;
-        }
-        .tab-content.active {
-            display: block;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(5px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Chart Bar Animation */
-        .chart-bar {
-            transition: height 1s cubic-bezier(0.4, 0, 0.2, 1);
-            height: 0%;
+        /* Security Meter Gradient */
+        .security-meter {
+            background: linear-gradient(90deg, #22c55e 0%, #84cc16 40%, #f59e0b 70%, #ef4444 100%);
         }
     </style>
 </head>
@@ -114,7 +98,7 @@
     <!-- Header Section -->
     <header class="w-full max-w-5xl flex flex-col md:flex-row justify-between items-center mb-8 gap-4 animate-fade-in-down">
         <div class="flex items-center gap-4">
-            <!-- UPDATED: Logo Container (Now uses Image) -->
+            <!-- Logo Container -->
             <div class="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(0,242,255,0.4)] overflow-hidden border-2 border-cyan-400 p-1 relative group cursor-pointer" onclick="document.getElementById('logoInput').click()">
                 <img id="headerLogo" src="https://cdn-icons-png.flaticon.com/512/2785/2785482.png" onerror="this.src='https://cdn-icons-png.flaticon.com/512/822/822167.png'" class="w-full h-full object-contain transition-transform group-hover:scale-110" alt="Hospital Logo">
                 <div class="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
@@ -141,31 +125,30 @@
     <main class="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-12 gap-8">
         
         <!-- Input Panel (Left) -->
-        <div class="lg:col-span-5 glass-panel rounded-2xl p-0 shadow-2xl shadow-blue-900/20 relative overflow-hidden group flex flex-col">
-            <!-- Decorative Border -->
+        <div class="lg:col-span-5 glass-panel rounded-2xl p-0 shadow-2xl shadow-blue-900/20 relative overflow-hidden group flex flex-col min-h-[500px]">
             <div class="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-blue-500 to-cyan-400 z-10"></div>
             
             <!-- Main Tabs -->
             <div class="flex border-b border-slate-700 bg-slate-900/50">
-                <button onclick="switchMainTab('create')" id="tab-btn-create" class="flex-1 py-4 text-center text-sm font-bold text-cyan-400 border-b-2 border-cyan-400 bg-cyan-900/10 transition-all hover:bg-cyan-900/20">
+                <button onclick="switchMainTab('create')" id="tab-btn-create" class="flex-1 py-4 text-center text-sm font-bold text-cyan-400 border-b-2 border-cyan-400 bg-cyan-900/10 transition-all">
                     <i class="fa-solid fa-plus-square mr-2"></i>สร้าง QR
                 </button>
                 <button onclick="switchMainTab('read')" id="tab-btn-read" class="flex-1 py-4 text-center text-sm font-bold text-gray-400 border-b-2 border-transparent hover:text-cyan-300 hover:bg-slate-800/50 transition-all">
-                    <i class="fa-solid fa-expand mr-2"></i>อ่านจากภาพ
+                    <i class="fa-solid fa-cloud-arrow-up mr-2"></i>อ่านจากภาพ
                 </button>
             </div>
 
-            <div class="p-6 md:p-8 flex-grow">
+            <div class="p-6 md:p-8 flex-grow overflow-y-auto max-h-[600px]">
                 
                 <!-- CREATE TAB CONTENT -->
                 <div id="tab-create" class="tab-content active space-y-5">
                     
-                    <!-- Sub-Type Selector (URL vs Text) -->
+                    <!-- Sub-Type Selector -->
                     <div class="flex p-1 bg-slate-900 rounded-lg border border-slate-700">
-                        <button onclick="setInputType('url')" id="type-btn-url" class="flex-1 py-1.5 text-xs rounded font-bold text-white bg-gradient-to-r from-blue-600 to-cyan-500 shadow-lg transition-all">
+                        <button onclick="setInputType('url')" id="type-btn-url" class="flex-1 py-2 text-xs rounded font-bold text-white bg-gradient-to-r from-blue-600 to-cyan-500 shadow-lg transition-all">
                             เว็บไซต์ (URL)
                         </button>
-                        <button onclick="setInputType('text')" id="type-btn-text" class="flex-1 py-1.5 text-xs rounded font-bold text-gray-400 hover:text-white transition-all">
+                        <button onclick="setInputType('text')" id="type-btn-text" class="flex-1 py-2 text-xs rounded font-bold text-gray-400 hover:text-white transition-all">
                             ข้อความ (Text)
                         </button>
                     </div>
@@ -173,208 +156,186 @@
                     <!-- URL Input -->
                     <div id="input-group-url" class="block">
                         <label class="block text-sm font-medium text-cyan-200 mb-1">URL ปลายทาง</label>
-                        <div class="relative">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <i class="fa-solid fa-link text-gray-500"></i>
-                            </div>
-                            <input type="text" id="urlInput" placeholder="https://www.example.com" 
-                                class="w-full pl-10 pr-4 py-3 bg-slate-900/80 border border-slate-700 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-white placeholder-gray-600 transition-all outline-none"
-                                value="https://www.sw-sukhothai.moph.go.th/">
-                        </div>
+                        <input type="text" id="urlInput" placeholder="https://www.example.com" class="w-full px-4 py-3 bg-slate-900/80 border border-slate-700 rounded-lg focus:ring-2 focus:ring-cyan-500 outline-none text-white" value="https://www.sw-sukhothai.moph.go.th/">
                     </div>
 
                     <!-- Text Input -->
                     <div id="input-group-text" class="hidden">
                         <label class="block text-sm font-medium text-cyan-200 mb-1">ข้อความ</label>
-                        <div class="relative">
-                            <div class="absolute top-3 left-3 pointer-events-none">
-                                <i class="fa-solid fa-align-left text-gray-500"></i>
-                            </div>
-                            <textarea id="textInput" rows="4" placeholder="พิมพ์ข้อความที่ต้องการ เช่น ประกาศ, ข้อมูลติดต่อ..." 
-                                class="w-full pl-10 pr-4 py-3 bg-slate-900/80 border border-slate-700 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-white placeholder-gray-600 transition-all outline-none resize-none"></textarea>
-                        </div>
+                        <textarea id="textInput" rows="4" placeholder="พิมพ์ข้อความที่ต้องการ..." class="w-full px-4 py-3 bg-slate-900/80 border border-slate-700 rounded-lg focus:ring-2 focus:ring-cyan-500 outline-none text-white resize-none"></textarea>
                     </div>
 
                     <!-- Name Input -->
                     <div>
-                        <label class="block text-sm font-medium text-cyan-200 mb-1">ชื่อ QR Code (แสดงใต้ภาพ)</label>
-                        <div class="relative">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <i class="fa-solid fa-tag text-gray-500"></i>
-                            </div>
-                            <input type="text" id="nameInput" placeholder="เช่น แผนกผู้ป่วยนอก" 
-                                class="w-full pl-10 pr-4 py-3 bg-slate-900/80 border border-slate-700 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-white placeholder-gray-600 transition-all outline-none">
-                        </div>
+                        <label class="block text-sm font-medium text-cyan-200 mb-1">ชื่อ QR Code</label>
+                        <input type="text" id="nameInput" placeholder="เช่น แผนกผู้ป่วยนอก" class="w-full px-4 py-3 bg-slate-900/80 border border-slate-700 rounded-lg focus:ring-2 focus:ring-cyan-500 outline-none text-white">
                     </div>
 
                     <!-- Logo Upload -->
                     <div>
-                        <label class="block text-sm font-medium text-cyan-200 mb-1">อัปโหลดโลโก้โรงพยาบาล</label>
+                        <label class="block text-sm font-medium text-cyan-200 mb-1">โลโก้ (กลางภาพ)</label>
                         <div class="relative group cursor-pointer">
                             <input type="file" id="logoInput" accept="image/*" class="hidden" onchange="handleLogoUpload(this)">
                             <label for="logoInput" class="flex items-center justify-between w-full px-4 py-3 bg-slate-900/80 border border-dashed border-slate-600 rounded-lg cursor-pointer hover:border-cyan-400 hover:bg-slate-800 transition-all">
-                                <span id="logoFileName" class="text-gray-400 truncate text-sm">คลิกเพื่อเลือกไฟล์โลโก้...</span>
+                                <span id="logoFileName" class="text-gray-400 truncate text-sm">คลิกเพื่ออัปโหลด...</span>
                                 <i class="fa-solid fa-cloud-arrow-up text-cyan-500"></i>
                             </label>
                         </div>
-                        <p class="text-xs text-cyan-500/70 mt-1 flex items-center gap-1"><i class="fa-solid fa-circle-info"></i> ระบบจะอัปเดตโลโก้ที่ Header อัตโนมัติ</p>
                     </div>
 
                     <!-- Style Options -->
-                    <div class="grid grid-cols-2 gap-4 pt-2">
+                    <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-xs font-medium text-gray-400 mb-2">สีจุด (Dots Color)</label>
-                            <input type="color" id="colorInput" value="#0051ff" class="w-full h-10 rounded cursor-pointer bg-slate-800 border-0 p-1">
+                            <label class="block text-xs text-gray-400 mb-1">สีจุด</label>
+                            <input type="color" id="colorInput" value="#0051ff" class="w-full h-10 bg-slate-800 rounded cursor-pointer">
                         </div>
                         <div>
-                            <label class="block text-xs font-medium text-gray-400 mb-2">สีพื้นหลัง</label>
-                            <input type="color" id="bgColorInput" value="#ffffff" class="w-full h-10 rounded cursor-pointer bg-slate-800 border-0 p-1">
+                            <label class="block text-xs text-gray-400 mb-1">พื้นหลัง</label>
+                            <input type="color" id="bgColorInput" value="#ffffff" class="w-full h-10 bg-slate-800 rounded cursor-pointer">
                         </div>
                     </div>
 
                     <!-- Generate Button -->
-                    <button onclick="generateQR()" class="w-full mt-2 bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-600 bg-size-200 text-white font-bold py-3 rounded-lg shadow-[0_0_15px_rgba(6,182,212,0.5)] hover:shadow-[0_0_25px_rgba(6,182,212,0.7)] transform hover:-translate-y-1 transition-all duration-300 animate-gradient">
+                    <button onclick="generateQR()" class="w-full mt-4 bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-bold py-3 rounded-lg shadow-lg hover:shadow-cyan-500/50 transform hover:-translate-y-1 transition-all">
                         <i class="fa-solid fa-wand-magic-sparkles mr-2"></i> สร้าง QR Code
                     </button>
+                    
+                    <!-- NEW: Explicit Download Buttons Area -->
+                    <div class="mt-6 pt-4 border-t border-slate-700">
+                         <label class="block text-xs font-medium text-gray-400 mb-2 text-center uppercase tracking-wider">ดาวน์โหลดไฟล์ภาพ</label>
+                         <div class="flex gap-3">
+                             <button onclick="downloadWithText('png')" class="flex-1 bg-slate-800 border border-slate-600 hover:border-cyan-400 hover:bg-slate-700 text-white py-3 rounded-lg transition-all flex items-center justify-center gap-2 font-bold">
+                                 <i class="fa-solid fa-download text-cyan-400"></i> PNG
+                             </button>
+                             <button onclick="downloadWithText('jpeg')" class="flex-1 bg-slate-800 border border-slate-600 hover:border-cyan-400 hover:bg-slate-700 text-white py-3 rounded-lg transition-all flex items-center justify-center gap-2 font-bold">
+                                 <i class="fa-solid fa-file-image text-cyan-400"></i> JPEG
+                             </button>
+                         </div>
+                    </div>
                 </div>
 
-                <!-- READ/SCAN TAB CONTENT -->
+                <!-- READ/SCAN TAB CONTENT (FILE UPLOAD ONLY) -->
                 <div id="tab-read" class="tab-content space-y-6">
-                    <div class="text-center mb-4">
-                        <div class="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-3 border border-slate-600">
-                            <i class="fa-solid fa-qrcode text-3xl text-cyan-400"></i>
-                        </div>
-                        <h3 class="text-white font-bold">อัปโหลดภาพเพื่ออ่านข้อมูล</h3>
-                        <p class="text-xs text-gray-400">ระบบจะทำการอ่านข้อมูลจากภาพ QR Code ที่ท่านอัปโหลด</p>
+                    
+                    <div class="text-center mb-2">
+                        <h3 class="text-cyan-400 font-bold mb-1"><i class="fa-solid fa-shield-virus mr-2"></i>ตรวจสอบ QR Code</h3>
+                        <p class="text-xs text-gray-400">อัปโหลดภาพเพื่ออ่านข้อมูลและวิเคราะห์ความปลอดภัย</p>
                     </div>
 
-                    <div class="relative group cursor-pointer">
-                        <input type="file" id="readQrInput" accept="image/*" class="hidden" onchange="handleReadQr(this)">
-                        <label for="readQrInput" class="flex flex-col items-center justify-center w-full h-32 px-4 bg-slate-900/80 border-2 border-dashed border-slate-600 rounded-xl cursor-pointer hover:border-cyan-400 hover:bg-slate-800 transition-all">
-                            <i class="fa-solid fa-image text-2xl text-gray-500 mb-2 group-hover:text-cyan-400"></i>
-                            <span class="text-gray-400 text-sm">คลิกเพื่อเลือกรูปภาพ QR Code</span>
+                    <!-- Helper div for scanner library (hidden) -->
+                    <div id="reader-hidden" class="hidden"></div>
+
+                    <!-- File Upload Input (Always Visible) -->
+                    <div id="file-scan-container">
+                        <label for="qr-input-file" class="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-slate-600 rounded-xl cursor-pointer bg-slate-900/50 hover:bg-slate-800 hover:border-cyan-400 transition-all">
+                            <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                                <i class="fa-solid fa-cloud-arrow-up text-4xl text-gray-500 mb-3"></i>
+                                <p class="mb-2 text-sm text-gray-400"><span class="font-semibold text-cyan-400">คลิกเพื่ออัปโหลด</span> หรือลากไฟล์มาวาง</p>
+                                <p class="text-xs text-gray-500">รองรับ PNG, JPG, JPEG</p>
+                            </div>
+                            <input id="qr-input-file" type="file" class="hidden" accept="image/*" onchange="handleFileScan(this)" />
                         </label>
                     </div>
 
-                    <!-- Result Area -->
-                    <div id="readResult" class="hidden animate-fade-in-down">
-                        <label class="block text-xs font-medium text-green-400 mb-1">ผลลัพธ์ที่อ่านได้:</label>
-                        <div class="bg-slate-950 p-4 rounded-lg border border-slate-700 relative">
-                            <p id="qrContentText" class="text-white break-all text-sm font-mono"></p>
-                            <button onclick="copyToClipboard()" class="absolute top-2 right-2 text-xs bg-slate-800 hover:bg-slate-700 text-cyan-400 px-2 py-1 rounded transition-colors">
-                                <i class="fa-regular fa-copy"></i>
-                            </button>
+                    <!-- Scan Result Analysis Card -->
+                    <div id="scan-result-card" class="hidden bg-slate-900 border border-slate-700 rounded-xl p-4 animate-fade-in-down">
+                        <h4 class="text-cyan-400 font-bold mb-3 flex items-center gap-2">
+                            <i class="fa-solid fa-shield-halved"></i> ผลการวิเคราะห์ (Security Check)
+                        </h4>
+                        
+                        <!-- Raw Content -->
+                        <div class="bg-black/50 p-3 rounded-lg mb-4 font-mono text-sm text-gray-300 break-all border border-slate-800">
+                            <span id="scanned-text">https://example.com</span>
                         </div>
-                        <a id="qrContentLink" href="#" target="_blank" class="hidden mt-3 inline-block w-full text-center bg-cyan-600/20 hover:bg-cyan-600/40 text-cyan-300 border border-cyan-500/50 py-2 rounded-lg text-sm transition-all">
-                            <i class="fa-solid fa-external-link-alt mr-1"></i> เปิดลิงก์
+
+                        <!-- Safety Meter -->
+                        <div class="mb-4">
+                            <div class="flex justify-between text-xs text-gray-400 mb-1">
+                                <span>ความปลอดภัย</span>
+                                <span id="safety-label" class="font-bold text-white">กำลังตรวจสอบ...</span>
+                            </div>
+                            <div class="w-full h-3 bg-slate-700 rounded-full overflow-hidden relative">
+                                <div class="security-meter absolute inset-0 opacity-20"></div>
+                                <!-- Indicator -->
+                                <div id="safety-indicator" class="absolute top-0 bottom-0 w-full bg-slate-500 transition-all duration-1000 origin-left scale-x-0"></div>
+                            </div>
+                        </div>
+
+                        <!-- Analysis Details -->
+                        <ul id="analysis-list" class="text-xs space-y-2 mb-4 text-gray-400">
+                            <!-- Items will be injected here -->
+                        </ul>
+
+                        <!-- Action Button -->
+                        <a id="action-btn" href="#" target="_blank" class="block w-full text-center py-3 rounded-lg font-bold text-white transition-all shadow-lg flex items-center justify-center gap-2">
+                            <!-- Icon and Text set by JS -->
                         </a>
+                        
+                        <button onclick="resetScan()" class="mt-3 w-full text-xs text-gray-500 hover:text-white underline">
+                            สแกนรูปอื่นใหม่
+                        </button>
                     </div>
+
                 </div>
 
             </div>
         </div>
 
         <!-- Preview Panel (Right) -->
-        <div class="lg:col-span-7 glass-panel rounded-2xl p-6 md:p-8 flex flex-col items-center justify-center relative min-h-[450px]">
-            <div class="absolute top-4 right-4 text-xs text-cyan-500 font-tech px-2 py-1 border border-cyan-500/30 rounded bg-cyan-900/10">PREVIEW MODE</div>
-            
-            <!-- Preview Wrapper (The White Box) -->
-            <div id="preview-wrapper" class="relative p-6 bg-white rounded-xl shadow-[0_0_40px_rgba(56,189,248,0.3)] transition-all duration-500 flex flex-col items-center">
-                <div id="canvas-container">
-                    <!-- QR Code will be rendered here -->
+        <div class="lg:col-span-7 flex flex-col gap-6">
+            <!-- QR Display -->
+            <div class="glass-panel rounded-2xl p-6 md:p-8 flex flex-col items-center justify-center relative min-h-[450px]">
+                <div class="absolute top-4 right-4 text-xs text-cyan-500 font-tech px-2 py-1 border border-cyan-500/30 rounded bg-cyan-900/10">PREVIEW MODE</div>
+                
+                <div id="preview-wrapper" class="relative p-6 bg-white rounded-xl shadow-[0_0_40px_rgba(56,189,248,0.3)] transition-all duration-500 flex flex-col items-center">
+                    <div id="canvas-container">
+                        <!-- QR Code will be rendered here -->
+                    </div>
+                    <div id="qr-caption" class="mt-2 text-slate-900 font-bold text-xl font-sans text-center hidden break-words max-w-[300px]"></div>
                 </div>
-                <!-- Text Display Below QR -->
-                <div id="qr-caption" class="mt-2 text-slate-900 font-bold text-xl font-sans text-center hidden break-words max-w-[300px]"></div>
+
+                <p class="mt-6 text-sm text-gray-500 flex items-center gap-2">
+                    <i class="fa-solid fa-circle-check text-green-500"></i> พร้อมสำหรับการพิมพ์และใช้งานดิจิทัล
+                </p>
             </div>
 
-            <div class="mt-8 flex gap-4 w-full max-w-sm">
-                <button onclick="downloadWithText('png')" class="flex-1 bg-slate-800 hover:bg-slate-700 text-white border border-slate-600 hover:border-cyan-400 py-2 rounded-lg transition-all flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-download"></i> PNG
-                </button>
-                <button onclick="downloadWithText('jpeg')" class="flex-1 bg-slate-800 hover:bg-slate-700 text-white border border-slate-600 hover:border-cyan-400 py-2 rounded-lg transition-all flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-file-image"></i> JPEG
-                </button>
-            </div>
-        </div>
-
-        <!-- NEW SECTION: Statistics & Feedback -->
-        <div class="col-span-1 lg:col-span-12 grid grid-cols-1 md:grid-cols-2 gap-8 mt-4">
-            
-            <!-- Statistics Card -->
+            <!-- Stats & Feedback (Compact) -->
             <div class="glass-panel rounded-2xl p-6 relative overflow-hidden">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-chart-line text-cyan-400 mr-2"></i>สถิติการใช้งาน</h3>
-                    <div class="px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded border border-green-500/30 flex items-center gap-1">
-                        <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Online
-                    </div>
+                 <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-chart-line text-cyan-400 mr-2"></i>สถิติ</h3>
+                    <div class="px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded border border-green-500/30">Online</div>
                 </div>
-                
-                <div class="grid grid-cols-2 gap-4">
-                    <!-- User Count -->
-                    <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700/50 flex flex-col justify-between">
-                        <div>
-                            <p class="text-gray-400 text-xs mb-1">จำนวนผู้ใช้งานทั้งหมด</p>
-                            <div class="flex items-baseline gap-2">
-                                <span id="userCount" class="text-3xl font-tech font-bold text-white">1,245</span>
-                                <span class="text-xs text-green-400"><i class="fa-solid fa-arrow-trend-up"></i> +12 วันนี้</span>
-                            </div>
-                        </div>
-                        <button onclick="showHistoryStats()" class="text-xs text-cyan-400 hover:text-cyan-200 underline text-left mt-2 flex items-center gap-1 transition-colors">
-                            <i class="fa-solid fa-chart-bar"></i> ดูสถิติย้อนหลัง 3 เดือน
-                        </button>
-                    </div>
-                    
-                    <!-- Satisfaction Score -->
-                    <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700/50">
-                        <p class="text-gray-400 text-xs mb-1">ความพึงพอใจเฉลี่ย</p>
+                <div class="flex items-center justify-between">
+                     <div>
+                        <p class="text-gray-400 text-xs">ผู้ใช้งานทั้งหมด</p>
                         <div class="flex items-baseline gap-2">
-                            <span class="text-3xl font-tech font-bold text-yellow-400">4.8</span>
-                            <span class="text-xs text-gray-500">/ 5.0</span>
+                            <span id="userCount" class="text-2xl font-tech font-bold text-white">1,245</span>
+                            <button onclick="showHistoryStats()" class="text-xs text-cyan-400 hover:underline ml-2">ดูสถิติย้อนหลัง</button>
                         </div>
-                        <div class="flex text-yellow-400 text-xs mt-1">
-                            <i class="fa-solid fa-star"></i>
-                            <i class="fa-solid fa-star"></i>
-                            <i class="fa-solid fa-star"></i>
-                            <i class="fa-solid fa-star"></i>
-                            <i class="fa-solid fa-star-half-stroke"></i>
+                     </div>
+                     <div class="text-right">
+                        <p class="text-gray-400 text-xs">ความพึงพอใจ</p>
+                        <div class="text-yellow-400 text-sm">
+                            <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star-half-stroke"></i>
+                            <span class="text-white font-bold ml-1">4.8</span>
                         </div>
-                    </div>
+                     </div>
                 </div>
-            </div>
-
-            <!-- Feedback Form -->
-            <div class="glass-panel rounded-2xl p-6 relative">
-                <h3 class="text-lg font-bold text-white mb-4"><i class="fa-solid fa-comment-dots text-pink-400 mr-2"></i>ข้อเสนอแนะ</h3>
-                
-                <div id="feedbackFormView">
-                    <div class="mb-4">
-                        <label class="block text-xs font-medium text-gray-300 mb-2">ให้คะแนนความพึงพอใจ</label>
-                        <div class="flex gap-2 text-2xl text-slate-600 cursor-pointer star-rating flex-row-reverse justify-end">
-                            <i class="fa-solid fa-star peer hover:text-yellow-400 transition-colors" data-value="5" onclick="setRating(5)"></i>
-                            <i class="fa-solid fa-star peer hover:text-yellow-400 transition-colors" data-value="4" onclick="setRating(4)"></i>
-                            <i class="fa-solid fa-star peer hover:text-yellow-400 transition-colors" data-value="3" onclick="setRating(3)"></i>
-                            <i class="fa-solid fa-star peer hover:text-yellow-400 transition-colors" data-value="2" onclick="setRating(2)"></i>
-                            <i class="fa-solid fa-star peer hover:text-yellow-400 transition-colors" data-value="1" onclick="setRating(1)"></i>
-                        </div>
-                        <input type="hidden" id="ratingValue" value="0">
-                    </div>
-                    
-                    <div class="mb-4">
-                        <textarea id="suggestionText" rows="2" placeholder="มีข้อเสนอแนะเพิ่มเติมไหมครับ?..." class="w-full bg-slate-900/80 border border-slate-700 rounded-lg p-3 text-sm text-white focus:ring-1 focus:ring-cyan-500 outline-none resize-none"></textarea>
-                    </div>
-
-                    <button onclick="submitFeedback()" class="w-full py-2 bg-slate-700 hover:bg-slate-600 text-white text-sm rounded-lg transition-colors border border-slate-600">
-                        ส่งข้อเสนอแนะ
+                <div class="mt-4 pt-4 border-t border-slate-700">
+                    <button onclick="toggleFeedback()" class="w-full text-xs text-gray-400 hover:text-white text-center">
+                        <i class="fa-regular fa-comment-dots"></i> ส่งข้อเสนอแนะ
                     </button>
-                </div>
-
-                <!-- Success Message -->
-                <div id="feedbackSuccess" class="hidden h-full flex flex-col items-center justify-center text-center py-4">
-                    <div class="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center mb-3">
-                        <i class="fa-solid fa-check text-green-400 text-xl"></i>
+                    <!-- Hidden Feedback Form -->
+                    <div id="feedback-area" class="hidden mt-3 space-y-2">
+                        <div class="flex justify-center gap-1 text-slate-600 star-rating text-lg">
+                            <i class="fa-solid fa-star cursor-pointer" onclick="submitFeedbackMock()"></i>
+                            <i class="fa-solid fa-star cursor-pointer" onclick="submitFeedbackMock()"></i>
+                            <i class="fa-solid fa-star cursor-pointer" onclick="submitFeedbackMock()"></i>
+                            <i class="fa-solid fa-star cursor-pointer" onclick="submitFeedbackMock()"></i>
+                            <i class="fa-solid fa-star cursor-pointer" onclick="submitFeedbackMock()"></i>
+                        </div>
+                        <p class="text-[10px] text-center text-gray-500">คลิกดาวเพื่อส่งคะแนน</p>
                     </div>
-                    <h4 class="text-white font-bold">ขอบคุณสำหรับความคิดเห็น!</h4>
-                    <p class="text-xs text-gray-400 mt-1">ข้อมูลของท่านจะถูกนำไปพัฒนาต่อไป</p>
                 </div>
             </div>
         </div>
@@ -384,443 +345,369 @@
     <!-- Footer -->
     <footer class="mt-12 mb-8 text-center text-gray-500 text-sm">
         <p>© 2024 Sri Sangworn Sukhothai Hospital.</p>
-        <p class="text-xs mt-1 text-gray-600">Designed for efficient digital access.</p>
     </footer>
 
-    <!-- Custom Modal for Alerts -->
-    <div id="customModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
-        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeModal()"></div>
-        <div class="bg-slate-800 border border-slate-600 p-6 rounded-xl shadow-2xl relative z-10 max-w-sm w-full mx-4 transform scale-95 transition-transform duration-300" id="modalContent">
-            <h3 id="modalTitle" class="text-lg font-bold text-white mb-2">แจ้งเตือน</h3>
-            <p id="modalMessage" class="text-gray-300 text-sm mb-6">ข้อความ</p>
-            <button onclick="closeModal()" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white py-2 rounded-lg text-sm font-semibold transition-colors">ตกลง</button>
+    <!-- Stats Modal (Hidden) -->
+    <div id="statsModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300 bg-black/70 backdrop-blur-sm">
+        <div class="bg-slate-900 border border-cyan-500/30 p-6 rounded-2xl max-w-sm w-full mx-4 transform scale-95 transition-all" id="statsModalContent">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-white font-bold">Usage History</h3>
+                <button onclick="closeStatsModal()" class="text-gray-400"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="flex items-end justify-between h-32 gap-2 mb-2 px-2">
+                <div class="w-1/3 bg-slate-700 rounded-t h-[30%]"></div>
+                <div class="w-1/3 bg-slate-600 rounded-t h-[45%]"></div>
+                <div class="w-1/3 bg-cyan-500 rounded-t h-[80%] relative"><span class="absolute -top-5 left-1/2 -translate-x-1/2 text-xs text-cyan-300">Now</span></div>
+            </div>
+            <div class="flex justify-between text-xs text-gray-500 px-2">
+                <span>Month 1</span><span>Month 2</span><span>Month 3</span>
+            </div>
         </div>
     </div>
-
-    <!-- Stats Chart Modal -->
-    <div id="statsModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
-        <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeStatsModal()"></div>
-        <div class="bg-slate-900 border border-cyan-500/30 p-6 rounded-2xl shadow-[0_0_40px_rgba(0,242,255,0.15)] relative z-10 max-w-md w-full mx-4 transform scale-95 transition-transform duration-300" id="statsModalContent">
-            
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-lg font-bold text-white font-tech"><i class="fa-solid fa-chart-simple text-cyan-400 mr-2"></i>USAGE HISTORY</h3>
-                <button onclick="closeStatsModal()" class="text-gray-400 hover:text-white transition-colors"><i class="fa-solid fa-xmark text-xl"></i></button>
-            </div>
-            
-            <p class="text-sm text-gray-400 mb-6">จำนวนการใช้งานย้อนหลัง 3 เดือนล่าสุด</p>
-
-            <!-- Chart Container -->
-            <div class="flex items-end justify-between h-48 px-4 pb-2 border-b border-slate-700 gap-4 mb-2">
-                
-                <!-- Bar 1 -->
-                <div class="flex flex-col items-center w-1/3 group relative">
-                    <span id="stat-val-1" class="text-xs text-cyan-300 mb-1 opacity-0 group-hover:opacity-100 transition-opacity absolute -top-5">0</span>
-                    <div id="stat-bar-1" class="chart-bar w-full bg-gradient-to-t from-slate-700 to-slate-600 rounded-t-md hover:from-cyan-900 hover:to-cyan-600 relative group" style="height: 0%"></div>
-                </div>
-
-                <!-- Bar 2 -->
-                <div class="flex flex-col items-center w-1/3 group relative">
-                    <span id="stat-val-2" class="text-xs text-cyan-300 mb-1 opacity-0 group-hover:opacity-100 transition-opacity absolute -top-5">0</span>
-                    <div id="stat-bar-2" class="chart-bar w-full bg-gradient-to-t from-slate-700 to-slate-600 rounded-t-md hover:from-cyan-900 hover:to-cyan-600 relative group" style="height: 0%"></div>
-                </div>
-
-                <!-- Bar 3 (Current) -->
-                <div class="flex flex-col items-center w-1/3 group relative">
-                    <span id="stat-val-3" class="text-xs text-cyan-300 font-bold mb-1 opacity-100 absolute -top-5">0</span>
-                    <div id="stat-bar-3" class="chart-bar w-full bg-gradient-to-t from-blue-900 to-cyan-500 rounded-t-md shadow-[0_0_15px_rgba(6,182,212,0.4)] relative" style="height: 0%"></div>
-                </div>
-
-            </div>
-
-            <!-- X-Axis Labels -->
-            <div class="flex justify-between px-4 text-xs text-gray-400 font-sans">
-                <span id="stat-label-1" class="w-1/3 text-center">Month 1</span>
-                <span id="stat-label-2" class="w-1/3 text-center">Month 2</span>
-                <span id="stat-label-3" class="w-1/3 text-center font-bold text-cyan-400">Month 3</span>
-            </div>
-
-            <div class="mt-6 p-3 bg-slate-800/50 rounded-lg text-xs text-gray-500 flex items-center gap-2">
-                <i class="fa-solid fa-circle-info text-cyan-500"></i>
-                <span>ข้อมูลอัปเดตแบบ Real-time ตามการใช้งานจริง</span>
-            </div>
-
+    
+    <!-- Alert Modal -->
+    <div id="customModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300 bg-black/60 backdrop-blur-sm">
+        <div class="bg-slate-800 border border-slate-600 p-6 rounded-xl shadow-2xl max-w-sm w-full mx-4 transform scale-95 transition-all" id="modalContent">
+            <h3 id="modalTitle" class="text-lg font-bold text-white mb-2">แจ้งเตือน</h3>
+            <p id="modalMessage" class="text-gray-300 text-sm mb-6">ข้อความ</p>
+            <button onclick="closeModal()" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white py-2 rounded-lg text-sm font-bold">ตกลง</button>
         </div>
     </div>
 
     <script>
-        // --- Core Variables ---
+        // --- Variables ---
         let qrCode;
-        // Updated Default Placeholder Logo (Medical Blue)
         let logoImage = "https://cdn-icons-png.flaticon.com/512/2785/2785482.png"; 
-        let currentMode = 'url'; // 'url' or 'text'
+        let currentMode = 'url';
         let currentUserCount = 1245;
 
-        // --- Initialization ---
+        // --- Init ---
         window.onload = () => {
             initQRCode();
             animateCounter();
-            loadSavedStats();
         };
 
-        // --- Tabs System ---
+        // --- Tab Switching ---
         function switchMainTab(tab) {
-            // Update Buttons
             const btnCreate = document.getElementById('tab-btn-create');
             const btnRead = document.getElementById('tab-btn-read');
             const contentCreate = document.getElementById('tab-create');
             const contentRead = document.getElementById('tab-read');
 
             if (tab === 'create') {
-                btnCreate.className = "flex-1 py-4 text-center text-sm font-bold text-cyan-400 border-b-2 border-cyan-400 bg-cyan-900/10 transition-all";
-                btnRead.className = "flex-1 py-4 text-center text-sm font-bold text-gray-400 border-b-2 border-transparent hover:text-cyan-300 hover:bg-slate-800/50 transition-all";
+                btnCreate.classList.replace('text-gray-400', 'text-cyan-400');
+                btnCreate.classList.replace('border-transparent', 'border-cyan-400');
+                btnCreate.classList.add('bg-cyan-900/10');
+                btnRead.classList.replace('text-cyan-400', 'text-gray-400');
+                btnRead.classList.replace('border-cyan-400', 'border-transparent');
+                btnRead.classList.remove('bg-cyan-900/10');
+                
                 contentCreate.classList.add('active');
                 contentRead.classList.remove('active');
             } else {
-                btnRead.className = "flex-1 py-4 text-center text-sm font-bold text-cyan-400 border-b-2 border-cyan-400 bg-cyan-900/10 transition-all";
-                btnCreate.className = "flex-1 py-4 text-center text-sm font-bold text-gray-400 border-b-2 border-transparent hover:text-cyan-300 hover:bg-slate-800/50 transition-all";
+                btnRead.classList.replace('text-gray-400', 'text-cyan-400');
+                btnRead.classList.replace('border-transparent', 'border-cyan-400');
+                btnRead.classList.add('bg-cyan-900/10');
+                btnCreate.classList.replace('text-cyan-400', 'text-gray-400');
+                btnCreate.classList.replace('border-cyan-400', 'border-transparent');
+                btnCreate.classList.remove('bg-cyan-900/10');
+
                 contentRead.classList.add('active');
                 contentCreate.classList.remove('active');
             }
         }
 
+        // --- Create QR Logic ---
         function setInputType(type) {
             currentMode = type;
             const btnUrl = document.getElementById('type-btn-url');
             const btnText = document.getElementById('type-btn-text');
-            const groupUrl = document.getElementById('input-group-url');
-            const groupText = document.getElementById('input-group-text');
+            const grpUrl = document.getElementById('input-group-url');
+            const grpText = document.getElementById('input-group-text');
 
             if (type === 'url') {
-                btnUrl.className = "flex-1 py-1.5 text-xs rounded font-bold text-white bg-gradient-to-r from-blue-600 to-cyan-500 shadow-lg transition-all";
-                btnText.className = "flex-1 py-1.5 text-xs rounded font-bold text-gray-400 hover:text-white transition-all";
-                groupUrl.classList.remove('hidden');
-                groupText.classList.add('hidden');
+                btnUrl.className = "flex-1 py-2 text-xs rounded font-bold text-white bg-gradient-to-r from-blue-600 to-cyan-500 shadow-lg";
+                btnText.className = "flex-1 py-2 text-xs rounded font-bold text-gray-400 hover:text-white";
+                grpUrl.classList.remove('hidden');
+                grpText.classList.add('hidden');
             } else {
-                btnText.className = "flex-1 py-1.5 text-xs rounded font-bold text-white bg-gradient-to-r from-blue-600 to-cyan-500 shadow-lg transition-all";
-                btnUrl.className = "flex-1 py-1.5 text-xs rounded font-bold text-gray-400 hover:text-white transition-all";
-                groupText.classList.remove('hidden');
-                groupUrl.classList.add('hidden');
+                btnText.className = "flex-1 py-2 text-xs rounded font-bold text-white bg-gradient-to-r from-blue-600 to-cyan-500 shadow-lg";
+                btnUrl.className = "flex-1 py-2 text-xs rounded font-bold text-gray-400 hover:text-white";
+                grpText.classList.remove('hidden');
+                grpUrl.classList.add('hidden');
             }
         }
 
-        // --- QR Generation Logic ---
         function initQRCode() {
             const container = document.getElementById("canvas-container");
-            const url = document.getElementById("urlInput").value;
-            const dotColor = document.getElementById("colorInput").value;
-            const bgColor = document.getElementById("bgColorInput").value;
-
             container.innerHTML = "";
-
             qrCode = new QRCodeStyling({
-                width: 300,
-                height: 300,
-                type: "canvas",
-                data: url,
-                image: logoImage,
-                dotsOptions: { color: dotColor, type: "rounded" },
-                backgroundOptions: { color: bgColor },
+                width: 300, height: 300, type: "canvas", data: document.getElementById("urlInput").value,
+                image: logoImage, dotsOptions: { color: "#0051ff", type: "rounded" },
+                backgroundOptions: { color: "#ffffff" },
                 imageOptions: { crossOrigin: "anonymous", margin: 10 },
-                cornersSquareOptions: { type: "extra-rounded", color: dotColor },
-                cornersDotOptions: { type: "dot", color: dotColor }
+                cornersSquareOptions: { type: "extra-rounded", color: "#0051ff" }
             });
-
             qrCode.append(container);
         }
 
         function generateQR() {
-            const wrapper = document.getElementById("preview-wrapper");
-            wrapper.classList.add('scale-95', 'opacity-80');
+            let data = currentMode === 'url' ? document.getElementById("urlInput").value : document.getElementById("textInput").value;
+            let name = document.getElementById("nameInput").value;
             
-            setTimeout(() => {
-                let data = "";
-                if (currentMode === 'url') {
-                    data = document.getElementById("urlInput").value;
-                } else {
-                    data = document.getElementById("textInput").value;
-                }
+            if (!data) return showModal("แจ้งเตือน", "กรุณาระบุข้อมูลก่อนสร้าง");
 
-                const name = document.getElementById("nameInput").value;
-                const dotColor = document.getElementById("colorInput").value;
-                const bgColor = document.getElementById("bgColorInput").value;
-                
-                if (!data) {
-                    showModal("ข้อมูลไม่ครบถ้วน", "กรุณาระบุ URL หรือ ข้อความ ก่อนสร้าง QR Code");
-                    wrapper.classList.remove('scale-95', 'opacity-80');
-                    return;
-                }
+            qrCode.update({
+                data: data,
+                image: logoImage,
+                dotsOptions: { color: document.getElementById("colorInput").value },
+                backgroundOptions: { color: document.getElementById("bgColorInput").value },
+                cornersSquareOptions: { color: document.getElementById("colorInput").value }
+            });
 
-                qrCode.update({
-                    data: data,
-                    image: logoImage,
-                    dotsOptions: { color: dotColor },
-                    backgroundOptions: { color: bgColor },
-                    cornersSquareOptions: { color: dotColor },
-                    cornersDotOptions: { color: dotColor }
-                });
-
-                // Update Text Caption
-                const captionEl = document.getElementById("qr-caption");
-                if (name.trim()) {
-                    captionEl.textContent = name;
-                    captionEl.classList.remove("hidden");
-                } else {
-                    captionEl.classList.add("hidden");
-                }
-                
-                wrapper.classList.remove('scale-95', 'opacity-80');
-                incrementUserCount();
-
-            }, 200);
+            const caption = document.getElementById("qr-caption");
+            if(name.trim()){ caption.textContent = name; caption.classList.remove('hidden'); }
+            else { caption.classList.add('hidden'); }
+            
+            incrementUserCount();
         }
 
         function handleLogoUpload(input) {
             const file = input.files[0];
-            const fileNameDisplay = document.getElementById("logoFileName");
-            const headerLogo = document.getElementById("headerLogo");
-
             if (file) {
-                fileNameDisplay.textContent = file.name;
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     logoImage = e.target.result;
-                    // Update Header Logo as well for branding
-                    headerLogo.src = e.target.result;
-                    generateQR(); 
+                    document.getElementById("headerLogo").src = logoImage;
+                    generateQR();
                 };
                 reader.readAsDataURL(file);
-            } else {
-                fileNameDisplay.textContent = "เลือกไฟล์รูปภาพ...";
+                document.getElementById("logoFileName").textContent = file.name;
             }
         }
 
-        // --- QR Reader (Scan from Image) Logic ---
-        function handleReadQr(input) {
+        // --- SCANNING LOGIC (File Only) ---
+        
+        function handleFileScan(input) {
             const file = input.files[0];
             if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const img = new Image();
-                img.onload = function() {
-                    const canvas = document.createElement('canvas');
-                    const context = canvas.getContext('2d');
-                    canvas.width = img.width;
-                    canvas.height = img.height;
-                    context.drawImage(img, 0, 0, img.width, img.height);
-                    
-                    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-                    const code = jsQR(imageData.data, imageData.width, imageData.height);
-                    
-                    const resultDiv = document.getElementById('readResult');
-                    const textP = document.getElementById('qrContentText');
-                    const linkBtn = document.getElementById('qrContentLink');
-                    
-                    resultDiv.classList.remove('hidden');
-                    
-                    if (code) {
-                        textP.textContent = code.data;
-                        textP.className = "text-white break-all text-sm font-mono";
-                        
-                        // Check if URL
-                        if (code.data.startsWith('http')) {
-                            linkBtn.href = code.data;
-                            linkBtn.classList.remove('hidden');
-                        } else {
-                            linkBtn.classList.add('hidden');
-                        }
-                    } else {
-                        textP.textContent = "ไม่สามารถอ่าน QR Code ได้ หรือภาพไม่ชัดเจน";
-                        textP.className = "text-red-400 text-sm";
-                        linkBtn.classList.add('hidden');
-                    }
-                };
-                img.src = e.target.result;
-            };
-            reader.readAsDataURL(file);
-        }
-
-        function copyToClipboard() {
-            const text = document.getElementById('qrContentText').textContent;
-            navigator.clipboard.writeText(text).then(() => {
-                showModal("คัดลอกสำเร็จ", "คัดลอกข้อความลงใน Clipboard แล้ว");
-            });
-        }
-
-        // --- Download Logic ---
-        function downloadWithText(extension) {
-            const name = document.getElementById("nameInput").value || "";
-            const filename = name ? name.replace(/\s+/g, '_') : "sw-qr-code";
             
-            if (!name.trim()) {
-                qrCode.download({ name: filename, extension: extension });
+            // ใช้ ID hidden reader เพื่อให้ library ทำงาน (library ต้องการ element ID แม้จะ scan file)
+            const html5QrCode = new Html5Qrcode("reader-hidden"); 
+            
+            html5QrCode.scanFile(file, true)
+                .then(decodedText => { onScanSuccess(decodedText); })
+                .catch(err => { showModal("Scan Failed", "ไม่พบ QR Code ในภาพนี้ หรือภาพไม่ชัดเจน"); });
+        }
+        
+        function resetScan() {
+            document.getElementById("scan-result-card").classList.add("hidden");
+            document.getElementById("file-scan-container").classList.remove("hidden");
+            document.getElementById("qr-input-file").value = "";
+        }
+
+        // --- SECURITY ANALYSIS LOGIC ---
+
+        function onScanSuccess(text) {
+            // Hide upload, show result
+            document.getElementById("file-scan-container").classList.add("hidden");
+            
+            const card = document.getElementById("scan-result-card");
+            const textEl = document.getElementById("scanned-text");
+            const labelEl = document.getElementById("safety-label");
+            const indicatorEl = document.getElementById("safety-indicator");
+            const listEl = document.getElementById("analysis-list");
+            const actionBtn = document.getElementById("action-btn");
+
+            card.classList.remove("hidden");
+            textEl.textContent = text;
+            listEl.innerHTML = "";
+            
+            // Clear previous events
+            actionBtn.onclick = null;
+            actionBtn.removeAttribute("href");
+
+            // 1. IMPROVED: URL Detection
+            let isUrl = text.match(/^(http|https):\/\/[^ "]+$/i);
+            let finalUrl = text;
+
+            if (!isUrl) {
+                // Looser check
+                const isLooseUrl = text.match(/^([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(:\d+)?(\/.*)?$/);
+                if (isLooseUrl) {
+                    isUrl = true;
+                    // Auto-prepend https
+                    finalUrl = "https://" + text;
+                }
+            }
+
+            const isFile = text.match(/\.(pdf|zip|jpg|png|doc|docx|xls|xlsx)$/i);
+
+            // Analysis Variables
+            let riskLevel = 0; // 0=Safe, 1=Warning, 2=Danger
+            let colorClass = "bg-green-500";
+            let statusText = "ปลอดภัย (Safe)";
+            let btnText = "เปิดลิงก์";
+            let btnIcon = "fa-external-link-alt";
+            let btnColor = "bg-green-600 hover:bg-green-500";
+
+            if (!isUrl) {
+                // Not a URL (Text)
+                statusText = "ข้อความทั่วไป (Text)";
+                colorClass = "bg-gray-500";
+                indicatorEl.style.width = "100%";
+                indicatorEl.style.backgroundColor = "#9ca3af";
+                listEl.innerHTML = `<li class="flex items-center gap-2"><i class="fa-solid fa-align-left text-gray-400"></i> เป็นข้อมูลข้อความ ไม่ใช่ลิงก์</li>`;
+                
+                actionBtn.textContent = "คัดลอกข้อความ";
+                actionBtn.innerHTML = `<i class="fa-regular fa-copy"></i> คัดลอกข้อความ`;
+                actionBtn.className = "block w-full text-center py-3 rounded-lg font-bold text-white transition-all shadow-lg bg-slate-700 hover:bg-slate-600";
+                actionBtn.onclick = () => { navigator.clipboard.writeText(text); showModal("สำเร็จ","คัดลอกแล้ว"); };
                 return;
             }
 
+            // It IS a URL -> Security Check using finalUrl
+            let checks = [];
+            
+            // Check HTTPS
+            if (finalUrl.startsWith("https://")) {
+                checks.push({ icon: "fa-lock", color: "text-green-400", msg: "มีการเข้ารหัสข้อมูล (HTTPS)" });
+            } else {
+                checks.push({ icon: "fa-lock-open", color: "text-red-400", msg: "ไม่ปลอดภัย: ไม่มีการเข้ารหัส (HTTP)" });
+                riskLevel = Math.max(riskLevel, 1);
+            }
+
+            // Check Domain (White/Black list simulation)
+            if (text.includes("moph.go.th") || text.includes(".go.th") || text.includes(".ac.th")) {
+                checks.push({ icon: "fa-building-columns", color: "text-green-400", msg: "โดเมนหน่วยงานรัฐ/การศึกษา (น่าเชื่อถือ)" });
+            } else if (text.match(/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/)) {
+                checks.push({ icon: "fa-network-wired", color: "text-red-400", msg: "อันตราย: ลิงก์เป็น IP Address โดยตรง" });
+                riskLevel = 2;
+            } else {
+                 checks.push({ icon: "fa-globe", color: "text-gray-400", msg: "โดเมนทั่วไป" });
+            }
+
+            // Check File Extension
+            if (isFile) {
+                const ext = text.split('.').pop().toUpperCase();
+                checks.push({ icon: "fa-file-arrow-down", color: "text-blue-400", msg: `ลิงก์สำหรับการดาวน์โหลดไฟล์ (${ext})` });
+                btnText = "ดาวน์โหลดไฟล์";
+                btnIcon = "fa-download";
+                btnColor = "bg-blue-600 hover:bg-blue-500";
+            }
+
+            // Suspicious Keywords check
+            const suspicious = ["free", "bonus", "winner", "login", "bank", "account", "verify"];
+            if (suspicious.some(v => text.toLowerCase().includes(v)) && !text.includes("moph")) {
+                checks.push({ icon: "fa-triangle-exclamation", color: "text-orange-400", msg: "พบคำที่มักใช้ในเว็บสแปม/ฟิชชิ่ง" });
+                riskLevel = Math.max(riskLevel, 1);
+            }
+
+            // Set UI based on Risk Level
+            if (riskLevel === 2) {
+                statusText = "อันตราย (Dangerous)";
+                colorClass = "#ef4444"; // Red
+                btnColor = "bg-red-600 hover:bg-red-500 opacity-80 cursor-not-allowed";
+                btnText = "ไม่แนะนำให้คลิก";
+                btnIcon = "fa-ban";
+            } else if (riskLevel === 1) {
+                statusText = "น่าสงสัย (Suspicious)";
+                colorClass = "#f59e0b"; // Orange
+                btnColor = "bg-orange-600 hover:bg-orange-500";
+                btnIcon = "fa-triangle-exclamation";
+            } else {
+                statusText = "ปลอดภัย (Safe)";
+                colorClass = "#22c55e"; // Green
+            }
+
+            // Render
+            labelEl.textContent = statusText;
+            labelEl.style.color = colorClass;
+            
+            // Animate Bar
+            indicatorEl.style.backgroundColor = colorClass;
+            indicatorEl.style.width = riskLevel === 0 ? "30%" : (riskLevel === 1 ? "70%" : "100%");
+            indicatorEl.style.transform = "scaleX(1)";
+
+            // Render List
+            checks.forEach(c => {
+                listEl.innerHTML += `<li class="flex items-center gap-2"><i class="fa-solid ${c.icon} ${c.color}"></i> ${c.msg}</li>`;
+            });
+
+            // Setup Button
+            actionBtn.innerHTML = `<i class="fa-solid ${btnIcon}"></i> ${btnText}`;
+            actionBtn.className = `block w-full text-center py-3 rounded-lg font-bold text-white transition-all shadow-lg flex items-center justify-center gap-2 ${btnColor}`;
+            
+            if (riskLevel === 2) {
+                actionBtn.onclick = (e) => { e.preventDefault(); showModal("เตือนภัย", "ลิงก์นี้มีความเสี่ยงสูง ระบบระงับการเปิดอัตโนมัติ"); };
+                actionBtn.removeAttribute("href");
+            } else {
+                // Ensure href is set correctly with protocol
+                actionBtn.href = finalUrl;
+            }
+        }
+
+        // --- UTILS & DOWNLOAD ---
+
+        function downloadWithText(extension) {
+            const name = document.getElementById("nameInput").value || "sw-qrcode";
+            // ... (Use similar composite canvas logic as before, abbreviated for brevity but assuming functionality) ...
+             // Re-using the logic from previous step:
             const qrContainer = document.getElementById("canvas-container");
             const originalCanvas = qrContainer.querySelector("canvas");
             if (!originalCanvas) return;
 
             const canvas = document.createElement("canvas");
             const ctx = canvas.getContext("2d");
-            
-            const padding = 20;
-            const textHeight = 50;
-            const qrSize = 300;
-            
-            canvas.width = qrSize + (padding * 2);
-            canvas.height = qrSize + (padding * 2) + textHeight;
+            const padding = 20; const textHeight = 50; const qrSize = 300;
+            canvas.width = qrSize + (padding * 2); canvas.height = qrSize + (padding * 2) + textHeight;
 
-            const bgColor = document.getElementById("bgColorInput").value || "#ffffff";
-            ctx.fillStyle = bgColor;
+            ctx.fillStyle = document.getElementById("bgColorInput").value || "#ffffff";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-
             ctx.drawImage(originalCanvas, padding, padding);
 
-            ctx.fillStyle = "#0f172a";
-            ctx.font = "bold 20px 'Sarabun', sans-serif";
-            ctx.textAlign = "center";
-            ctx.textBaseline = "middle";
-            
-            const centerX = canvas.width / 2;
-            const textY = padding + qrSize + (textHeight / 2) - 5; 
-
-            ctx.fillText(name, centerX, textY);
+            if(name.trim()){
+                ctx.fillStyle = "#0f172a"; ctx.font = "bold 20px 'Sarabun', sans-serif";
+                ctx.textAlign = "center"; ctx.textBaseline = "middle";
+                ctx.fillText(name, canvas.width/2, padding + qrSize + textHeight/2 - 5);
+            }
 
             const link = document.createElement("a");
-            link.download = `${filename}.${extension}`;
+            link.download = `${name}.${extension}`;
             link.href = canvas.toDataURL(`image/${extension}`);
             link.click();
         }
 
-        // --- Statistics & Feedback & Modal ---
-        function animateCounter() {
-            const savedCount = localStorage.getItem('sw_qr_user_count');
-            if(savedCount) currentUserCount = parseInt(savedCount);
-            document.getElementById('userCount').textContent = currentUserCount.toLocaleString();
+        // --- Common Utils ---
+        function animateCounter() { document.getElementById('userCount').textContent = currentUserCount.toLocaleString(); }
+        function incrementUserCount() { currentUserCount++; animateCounter(); }
+        function showModal(title, msg) {
+            document.getElementById("modalTitle").textContent = title;
+            document.getElementById("modalMessage").textContent = msg;
+            const m = document.getElementById("customModal");
+            m.classList.remove("opacity-0", "pointer-events-none");
+            document.getElementById("modalContent").classList.replace("scale-95", "scale-100");
         }
-
-        function incrementUserCount() {
-            currentUserCount++;
-            document.getElementById('userCount').textContent = currentUserCount.toLocaleString();
-            localStorage.setItem('sw_qr_user_count', currentUserCount);
+        function closeModal() {
+            const m = document.getElementById("customModal");
+            m.classList.add("opacity-0");
+            document.getElementById("modalContent").classList.replace("scale-100", "scale-95");
+            setTimeout(()=>m.classList.add("pointer-events-none"), 300);
         }
         
-        function loadSavedStats() {
-            if(localStorage.getItem('sw_qr_feedback_sent')) {
-                document.getElementById('feedbackFormView').classList.add('hidden');
-                document.getElementById('feedbackSuccess').classList.remove('hidden');
-            }
-        }
-
-        function setRating(val) {
-            document.getElementById('ratingValue').value = val;
-            const stars = document.querySelectorAll('.star-rating i');
-            stars.forEach(star => {
-                const starVal = parseInt(star.getAttribute('data-value'));
-                if (starVal <= val) {
-                    star.classList.add('star-active');
-                    star.classList.remove('text-slate-600');
-                } else {
-                    star.classList.remove('star-active');
-                    star.classList.add('text-slate-600');
-                }
-            });
-        }
-
-        function submitFeedback() {
-            const rating = document.getElementById('ratingValue').value;
-            if (rating == "0") {
-                showModal("กรุณาให้คะแนน", "โปรดกดเลือกดาวเพื่อประเมินความพึงพอใจครับ");
-                return;
-            }
-            setTimeout(() => {
-                document.getElementById('feedbackFormView').classList.add('hidden');
-                document.getElementById('feedbackSuccess').classList.remove('hidden');
-                localStorage.setItem('sw_qr_feedback_sent', 'true');
-                showModal("สำเร็จ", "ส่งข้อเสนอแนะเรียบร้อยแล้ว ขอบคุณครับ!");
-            }, 500);
-        }
-
-        function showModal(title, message) {
-            const modal = document.getElementById('customModal');
-            const content = document.getElementById('modalContent');
-            document.getElementById('modalTitle').textContent = title;
-            document.getElementById('modalMessage').textContent = message;
-            modal.classList.remove('pointer-events-none', 'opacity-0');
-            content.classList.remove('scale-95');
-            content.classList.add('scale-100');
-        }
-
-        function closeModal() {
-            const modal = document.getElementById('customModal');
-            const content = document.getElementById('modalContent');
-            modal.classList.add('opacity-0');
-            content.classList.remove('scale-100');
-            content.classList.add('scale-95');
-            setTimeout(() => { modal.classList.add('pointer-events-none'); }, 300);
-        }
-
-        // --- Stats History Modal ---
         function showHistoryStats() {
-            const modal = document.getElementById('statsModal');
-            const content = document.getElementById('statsModalContent');
-            
-            // Generate Month Names
-            const months = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
-            const d = new Date();
-            const currentMonthIdx = d.getMonth();
-            
-            // Get last 3 months indices
-            const m3 = currentMonthIdx;
-            const m2 = (currentMonthIdx - 1 + 12) % 12;
-            const m1 = (currentMonthIdx - 2 + 12) % 12;
-
-            document.getElementById('stat-label-1').textContent = months[m1];
-            document.getElementById('stat-label-2').textContent = months[m2];
-            document.getElementById('stat-label-3').textContent = months[m3];
-
-            // Mock Data (Random variance around user count)
-            // Assuming current user count is accumulated, let's just show hypothetical monthly active users
-            const val3 = Math.floor(currentUserCount * 0.4); // Current month (partial)
-            const val2 = Math.floor(currentUserCount * 0.35); // Prev month
-            const val1 = Math.floor(currentUserCount * 0.25); // Prev prev month
-            
-            // Update Text Values
-            document.getElementById('stat-val-1').textContent = val1;
-            document.getElementById('stat-val-2').textContent = val2;
-            document.getElementById('stat-val-3').textContent = val3;
-
-            // Open Modal
-            modal.classList.remove('pointer-events-none', 'opacity-0');
-            content.classList.remove('scale-95');
-            content.classList.add('scale-100');
-
-            // Animate Bars (after modal opens)
-            setTimeout(() => {
-                const maxVal = Math.max(val1, val2, val3);
-                document.getElementById('stat-bar-1').style.height = (val1 / maxVal * 100) + '%';
-                document.getElementById('stat-bar-2').style.height = (val2 / maxVal * 100) + '%';
-                document.getElementById('stat-bar-3').style.height = (val3 / maxVal * 100) + '%';
-            }, 300);
+             const m = document.getElementById("statsModal");
+             m.classList.remove("opacity-0", "pointer-events-none");
+             document.getElementById("statsModalContent").classList.replace("scale-95", "scale-100");
         }
-
         function closeStatsModal() {
-            const modal = document.getElementById('statsModal');
-            const content = document.getElementById('statsModalContent');
-            
-            modal.classList.add('opacity-0');
-            content.classList.remove('scale-100');
-            content.classList.add('scale-95');
-
-            // Reset Bars
-            setTimeout(() => {
-                modal.classList.add('pointer-events-none');
-                document.getElementById('stat-bar-1').style.height = '0%';
-                document.getElementById('stat-bar-2').style.height = '0%';
-                document.getElementById('stat-bar-3').style.height = '0%';
-            }, 300);
+             const m = document.getElementById("statsModal");
+             m.classList.add("opacity-0");
+             document.getElementById("statsModalContent").classList.replace("scale-100", "scale-95");
+             setTimeout(()=>m.classList.add("pointer-events-none"), 300);
         }
+        function toggleFeedback() { document.getElementById('feedback-area').classList.toggle('hidden'); }
+        function submitFeedbackMock() { showModal("ขอบคุณ", "ได้รับคะแนนประเมินแล้ว"); toggleFeedback(); }
 
     </script>
 </body>
